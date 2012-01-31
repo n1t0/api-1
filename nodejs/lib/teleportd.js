@@ -100,7 +100,7 @@ var teleportd = function(spec, my) {
     if(Array.isArray(spec.loc) && spec.loc.length === 4)       // loc     [stream|search]
       q.loc = JSON.stringify(spec.loc);
     if(typeof spec.string === 'string')                        // string  [stream|search]
-      q.string = spec.string;
+      q.str = spec.string;
     if(Array.isArray(spec.period) && spec.period.length === 2) // period  [search]
       q.period = JSON.stringify(spec.period);
     if(typeof spec.from === 'number')                          // from    [search]

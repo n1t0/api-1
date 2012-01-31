@@ -1,9 +1,9 @@
 var util = require('util');
 
-var tl = require('../lib/teleportd.js').teleportd({ apikey: 'APIKEY' });
+var tl = require('../lib/teleportd.js').teleportd({ apikey: '' });
 
 
-tl.search({ string: 'red' }, 
+tl.search({ string: 'ford' }, 
 	  function(hits, total, took) {
             console.log('hits: ' + util.inspect(hits));
             console.log('total: ' + util.inspect(total));
@@ -30,5 +30,4 @@ setTimeout(function() {
     console.log('TOP!');
     tl.stop(sid);
   }, 5000);
-
 */
