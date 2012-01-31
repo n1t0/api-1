@@ -1,0 +1,14 @@
+{
+  "name": "teleportd",
+  "version": "0.1.0",
+  "description": "NodeJS Driver for Teleportd API",
+  "homepage": "https://teleportd.com/api.html",
+  "author": { "name": "Stanislas Polu",
+              "email": "stan@teleportd.com",
+              "url": "http://twitter.com/spolu" },
+  "repository" :    { "type" :  "git",
+                      "url" :   "http://github.com/teleportd/api.git" },
+  "dependencies": { "fwk": "0.1.x" },
+  "main" : "./lib/teleportd",
+  "engines" : { "node" : ">=0.6.0" }
+}
