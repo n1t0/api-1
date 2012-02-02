@@ -227,7 +227,7 @@ var teleportd = function(spec, my) {
         res.on('end', function() {
             var res = JSON.parse(body);
             if(res.ok)
-              cb(res.result);
+              cb(res.hit);
             else
               cb();
           });
