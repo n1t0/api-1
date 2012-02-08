@@ -81,7 +81,7 @@ var teleportd = function(spec, my) {
   var stream; /* stream({loc, string}, function(pic) {...}); */
   var stop;   /* stop(sid); */
   var get;    /* get(sha, function(pic) {...}); */
-  var tag;    /* tag(sha, tag); */
+  var tag;    /* tag(sha, tag, function(err) {...}); */
 
   // private
   var build;
@@ -240,8 +240,9 @@ var teleportd = function(spec, my) {
    * /!\ For internal use only
    * @param sha
    * @param tag
+   * @param cb    callback function(err)
    */
-  tag = function(sha, tag) {
+  tag = function(sha, tag, cb) {
     var options = { host: 'post.core.teleportd.com',
                     port: 80,
                     path: '/tag?' + sha,
@@ -249,16 +250,22 @@ var teleportd = function(spec, my) {
                     headers: { "content-type": 'application/json',
                                "x-teleportd-accesskey": my.apikey }
     };
+    var body = '';
 
     var req = http.request(options, function(res) {
         res.setEncoding('utf8');
         res.on('data', function (chunk) {
-            console.log('BODY: ' + chunk);
+            body += chunk;
+          });
+        res.on('end', function() {
+            var post = JSON.parse(body);
+            if (post.ok)
+              cb();
           });
       });
     
     req.on('error', function(e) {
-        console.log('problem with request: ' + e.message);
+        cb(e);
       });
     
     req.write(JSON.stringify({tag: tag}));
