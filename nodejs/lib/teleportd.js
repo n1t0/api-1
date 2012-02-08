@@ -126,7 +126,7 @@ var teleportd = function(spec, my) {
   /**
    * Performs a search and returns the array of pic received
    * @param spec {loc, string, period, from, size}
-   * @param cb   callback function cb(hits, total, took)
+   * @param cb   callback function cb(err, hits, total, took)
    */
   search = function(spec, cb) {
     http.get(build(spec, 'search'), function(res) {
@@ -138,9 +138,9 @@ var teleportd = function(spec, my) {
             try {
               var res = JSON.parse(body);
               if(res.ok)
-                cb(res.hits, res.total, res.took);
+                cb(null, res.hits, res.total, res.took);
               else
-                cb();
+                cb(new Error('Search fail'));
             }
             catch (e) {
               cb(e);
@@ -225,6 +225,7 @@ var teleportd = function(spec, my) {
   /**
    * Retrieves detailed information about a particular pic
    * @param ss sha 
+   * @param cb      callback function cb(err, pic)
    */
   get = function(sha, cb) {
     var spec = {sha: sha};
@@ -237,9 +238,9 @@ var teleportd = function(spec, my) {
             try {
               var res = JSON.parse(body);
               if(res.ok)
-                cb(res.hit);
+                cb(null, res.hit);
               else
-                cb();
+                cb(new Error('Get fail'));
             }
             catch(e) {
               cb(e);
@@ -253,7 +254,7 @@ var teleportd = function(spec, my) {
    * /!\ For internal use only
    * @param sha
    * @param tag
-   * @param cb    callback function(err)
+   * @param cb    callback function cb(err)
    */
   tag = function(sha, tag, cb) {
     var options = { host: 'post.core.teleportd.com',
