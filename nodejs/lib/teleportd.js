@@ -132,11 +132,16 @@ var teleportd = function(spec, my) {
             body += chunk;
           });
         res.on('end', function() {
-            var res = JSON.parse(body);
-            if(res.ok)
-              cb(res.hits, res.total, res.took);
-            else
-              cb();
+            try {
+              var res = JSON.parse(body);
+              if(res.ok)
+                cb(res.hits, res.total, res.took);
+              else
+                cb();
+            }
+            catch (e) {
+              cb(e);
+            }
           });
       });
   };
@@ -226,11 +231,16 @@ var teleportd = function(spec, my) {
             body += chunk;
           });
         res.on('end', function() {
-            var res = JSON.parse(body);
-            if(res.ok)
-              cb(res.hit);
-            else
-              cb();
+            try {
+              var res = JSON.parse(body);
+              if(res.ok)
+                cb(res.hit);
+              else
+                cb();
+            }
+            catch(e) {
+              cb(e);
+            }
           });
       });	       
   };
@@ -258,9 +268,14 @@ var teleportd = function(spec, my) {
             body += chunk;
           });
         res.on('end', function() {
-            var post = JSON.parse(body);
-            if (post.ok)
-              cb();
+            try {
+              var post = JSON.parse(body);
+              if (post.ok)
+                cb();
+            }
+            catch(e) {
+              cb(e);
+            }
           });
       });
     
