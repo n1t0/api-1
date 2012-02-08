@@ -81,7 +81,10 @@ var teleportd = function(spec, my) {
   var stream; /* stream({loc, string}, function(pic) {...}); */
   var stop;   /* stop(sid); */
   var get;    /* get(sha, function(pic) {...}); */
+
+  // Internal
   var tag;    /* tag(sha, tag, function(err) {...}); */
+  var untag;  /* tag(sha, tag, function(err) {...}); */
 
   // private
   var build;
@@ -289,12 +292,58 @@ var teleportd = function(spec, my) {
   };
 
 
+  /**
+   * Remove a specified tag from a pic
+   * /!\ For internal use only
+   * @param sha
+   * @param tag
+   * @param cb    callback function(err)
+   */
+  untag = function(sha, tag, cb) {
+    var options = { host: 'post.core.teleportd.com',
+                    port: 80,
+                    path: '/untag?' + sha,
+                    method: 'POST',
+                    headers: { "content-type": 'application/json',
+                               "x-teleportd-accesskey": my.apikey }
+    };
+    var body = '';
+    
+    var req = http.request(options, function(res) {
+        res.setEncoding('utf8');
+        res.on('data', function (chunk) {
+            body += chunk;
+          });
+        res.on('end', function() {
+            try {
+              var post = JSON.parse(body);
+              if (post.ok)
+                cb();
+            }
+            catch(e) {
+              cb(e);
+            }
+          });
+      });
+    
+    req.on('error', function(e) {
+        cb(e);
+      });
+    
+    req.write(JSON.stringify({tag: tag}));
+    req.end();
+  };
+
+
   // exposed methods
   fwk.method(that, 'search', search, _super);
   fwk.method(that, 'stream', stream, _super);
   fwk.method(that, 'stop', stop, _super);
   fwk.method(that, 'get', get, _super);
+
+  // internal use
   fwk.method(that, 'tag', tag, _super);
+  fwk.method(that, 'untag', tag, _super);
 
   return that;
 };
