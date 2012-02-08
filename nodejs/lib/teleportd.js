@@ -243,8 +243,8 @@ var teleportd = function(spec, my) {
    */
   tag = function(sha, tag, cb) {
     var options = { host: 'post.core.teleportd.com',
-	    	    port: 80,
-	    	    path: '/tag?' + sha,
+                    port: 80,
+                    path: '/tag?' + sha,
                     method: 'POST',
 	    	    headers: { "content-type": 'application/json',
                                "x-teleportd-accesskey": my.apikey }
