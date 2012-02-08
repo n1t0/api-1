@@ -246,7 +246,7 @@ var teleportd = function(spec, my) {
                     port: 80,
                     path: '/tag?' + sha,
                     method: 'POST',
-	    	    headers: { "content-type": 'application/json',
+                    headers: { "content-type": 'application/json',
                                "x-teleportd-accesskey": my.apikey }
     };
 
