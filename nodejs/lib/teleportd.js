@@ -81,6 +81,7 @@ var teleportd = function(spec, my) {
   var stream; /* stream({loc, string}, function(pic) {...}); */
   var stop;   /* stop(sid); */
   var get;    /* get(sha, function(pic) {...}); */
+  var tag;    /* tag(sha, tag, function(err) {...}); */
 
   // private
   var build;
@@ -234,12 +235,43 @@ var teleportd = function(spec, my) {
       });	       
   };
 
+  /**
+   * Add specified tag to a pic
+   * /!\ For internal use only
+   * @param sha
+   * @param tag
+   */
+  tag = function(sha, tag, cb) {
+    var options = { host: 'post.core.teleportd.com',
+	    	    port: 80,
+	    	    path: '/tag?' + sha,
+                    method: 'POST',
+	    	    headers: { "content-type": 'application/json',
+                               "x-teleportd-accesskey": my.apikey }
+    };
+
+    var req = http.request(options, function(res) {
+        res.setEncoding('utf8');
+        res.on('data', function (chunk) {
+            console.log('BODY: ' + chunk);
+          });
+      });
+    
+    req.on('error', function(e) {
+        console.log('problem with request: ' + e.message);
+      });
+    
+    req.write(JSON.stringify({tag: tag}));
+    req.end();
+  };
+
 
   // exposed methods
   fwk.method(that, 'search', search, _super);
   fwk.method(that, 'stream', stream, _super);
   fwk.method(that, 'stop', stop, _super);
   fwk.method(that, 'get', get, _super);
+  fwk.method(that, 'tag', tag, _super);
 
   return that;
 };
