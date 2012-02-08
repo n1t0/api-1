@@ -81,7 +81,7 @@ var teleportd = function(spec, my) {
   var stream; /* stream({loc, string}, function(pic) {...}); */
   var stop;   /* stop(sid); */
   var get;    /* get(sha, function(pic) {...}); */
-  var tag;    /* tag(sha, tag, function(err) {...}); */
+  var tag;    /* tag(sha, tag); */
 
   // private
   var build;
@@ -241,7 +241,7 @@ var teleportd = function(spec, my) {
    * @param sha
    * @param tag
    */
-  tag = function(sha, tag, cb) {
+  tag = function(sha, tag) {
     var options = { host: 'post.core.teleportd.com',
                     port: 80,
                     path: '/tag?' + sha,
