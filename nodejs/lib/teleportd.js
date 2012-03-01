@@ -130,23 +130,23 @@ var teleportd = function(spec, my) {
    */
   search = function(spec, cb) {
     http.get(build(spec, 'search'), function(res) {
-        var body = '';
-        res.on('data', function(chunk) {
-            body += chunk;
-          });
-        res.on('end', function() {
-            try {
-              var res = JSON.parse(body);
-              if(res.ok)
-                cb(null, res.hits, res.total, res.took);
-              else
-                cb(new Error('Search fail'));
-            }
-            catch (e) {
-              cb(e);
-            }
-          });
+      var body = '';
+      res.on('data', function(chunk) {
+        body += chunk;
       });
+      res.on('end', function() {
+        try {
+          var res = JSON.parse(body);
+          if(res.ok)
+            cb(null, res.hits, res.total, res.took);
+          else
+            cb(new Error('Search fail'));
+        }
+        catch (e) {
+          cb(e);
+        }
+      });
+    });
   };
   
   /**
@@ -160,46 +160,49 @@ var teleportd = function(spec, my) {
     if(typeof id !== 'undefined')
       sid = id;      
     if(typeof my.streams[sid] === 'undefined')
-      my.streams[sid] = { error: 0 };
+      my.streams[sid] = { error: 0,
+                          cb: cb };
     
     var restart = function() {
-      my.streams[sid].error++;
-      if(my.streams[sid].error > 5)
-	my.streams[sid].error = 5;
-      util.debug('STREAM RESTART COUNT: ' + (my.streams[sid].error - 1) + ' ' + (1000 * Math.pow(2, my.streams[sid].error - 1)));
-      setTimeout(function() {			      
-		   stream(spec, cb, sid);
-		 }, 1000 * Math.pow(2, my.streams[sid].error - 1));		 
+      if(typeof my.streams[sid] !== 'undefined') {        
+        my.streams[sid].error++;
+        if(my.streams[sid].error > 5)
+	  my.streams[sid].error = 5;
+        util.debug('STREAM RESTART COUNT: ' + (my.streams[sid].error - 1) + ' ' + (1000 * Math.pow(2, my.streams[sid].error - 1)));
+        setTimeout(function() {			      
+	  stream(spec, cb, sid);
+	}, 1000 * Math.pow(2, my.streams[sid].error - 1));		 
+      }
     };	       
     
     http.get(build(spec, 'stream'), function(res) {
-        var parser = new Parser();
-	
-        my.streams[sid].res = res;
-        my.streams[sid].parser = parser;		 
-	
-	
-        parser.on('object', function(pic) {
-            my.streams[sid].error = 0;
-            cb(pic);
-          });
-        
-        res.on('data', function(chunk) {
-            parser.receive(chunk);
-          });
-        res.on('end', function() {
-            restart();
-          });	       
-        res.on('error', function(e) {
-            restart();
-          });
-        res.connection.on('close', function(e) {
-            restart();
-          });
-        
-      }).on('error', function(e) {
-          restart();
-        });
+      var parser = new Parser();
+      
+      my.streams[sid].res = res;
+      my.streams[sid].parser = parser;		 
+      
+      
+      parser.on('object', function(pic) {
+        my.streams[sid].error = 0;
+        cb(pic);
+      });
+      
+      res.on('data', function(chunk) {
+        parser.receive(chunk);
+      });
+      res.on('end', function() {
+        restart();
+      });	       
+      res.on('error', function(e) {
+        restart();
+      });
+      res.connection.on('close', function(e) {
+        restart();
+      });
+      
+    }).on('error', function(e) {
+      restart();
+    });
     
     return sid;
   };
@@ -211,12 +214,15 @@ var teleportd = function(spec, my) {
   stop = function(sid) {
     if(sid && my.streams[sid]) {
       my.streams[sid].res.destroy();
+      my.streams[sid].cb();
       delete my.streams[sid];
     }
     else if(typeof sid === 'undefined') {
       for(var s in my.streams) {
-	if(my.streams.hasOwnProperty(s))
+	if(my.streams.hasOwnProperty(s)) {
 	  my.streams[s].res.destroy();
+          my.streams[s].cb();
+        }
       }
       my.streams = {};
     }
@@ -230,23 +236,23 @@ var teleportd = function(spec, my) {
   get = function(sha, cb) {
     var spec = {sha: sha};
     http.get(build(spec, 'get'), function(res) {
-        var body = '';
-        res.on('data', function(chunk) {
-            body += chunk;
-          });
-        res.on('end', function() {
-            try {
-              var res = JSON.parse(body);
-              if(res.ok)
-                cb(null, res.hit);
-              else
-                cb(new Error('Get fail'));
-            }
-            catch(e) {
-              cb(e);
-            }
-          });
-      });	       
+      var body = '';
+      res.on('data', function(chunk) {
+        body += chunk;
+      });
+      res.on('end', function() {
+        try {
+          var res = JSON.parse(body);
+          if(res.ok)
+            cb(null, res.hit);
+          else
+            cb(new Error('Get fail'));
+        }
+        catch(e) {
+          cb(e);
+        }
+      });
+    });	       
   };
 
   /**
@@ -263,29 +269,29 @@ var teleportd = function(spec, my) {
                     method: 'POST',
                     headers: { "content-type": 'application/json',
                                "x-teleportd-accesskey": my.apikey }
-    };
+                  };
     var body = '';
 
     var req = http.request(options, function(res) {
-        res.setEncoding('utf8');
-        res.on('data', function (chunk) {
-            body += chunk;
-          });
-        res.on('end', function() {
-            try {
-              var post = JSON.parse(body);
-              if (post.ok)
-                cb();
-            }
-            catch(e) {
-              cb(e);
-            }
-          });
+      res.setEncoding('utf8');
+      res.on('data', function (chunk) {
+        body += chunk;
       });
+      res.on('end', function() {
+        try {
+          var post = JSON.parse(body);
+          if (post.ok)
+            cb();
+        }
+        catch(e) {
+          cb(e);
+        }
+      });
+    });
     
     req.on('error', function(e) {
-        cb(e);
-      });
+      cb(e);
+    });
     
     req.write(JSON.stringify({tag: tag}));
     req.end();
@@ -306,29 +312,29 @@ var teleportd = function(spec, my) {
                     method: 'POST',
                     headers: { "content-type": 'application/json',
                                "x-teleportd-accesskey": my.apikey }
-    };
+                  };
     var body = '';
     
     var req = http.request(options, function(res) {
-        res.setEncoding('utf8');
-        res.on('data', function (chunk) {
-            body += chunk;
-          });
-        res.on('end', function() {
-            try {
-              var post = JSON.parse(body);
-              if (post.ok)
-                cb();
-            }
-            catch(e) {
-              cb(e);
-            }
-          });
+      res.setEncoding('utf8');
+      res.on('data', function (chunk) {
+        body += chunk;
       });
+      res.on('end', function() {
+        try {
+          var post = JSON.parse(body);
+          if (post.ok)
+            cb();
+        }
+        catch(e) {
+          cb(e);
+        }
+      });
+    });
     
     req.on('error', function(e) {
-        cb(e);
-      });
+      cb(e);
+    });
     
     req.write(JSON.stringify({tag: tag}));
     req.end();
