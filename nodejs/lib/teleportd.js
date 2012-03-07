@@ -213,7 +213,8 @@ var teleportd = function(spec, my) {
    */ 
   stop = function(sid) {
     if(sid && my.streams[sid]) {
-      my.streams[sid].res.destroy();
+      if(my.streams[sid].res)
+        my.streams[sid].res.destroy();
       my.streams[sid].cb();
       delete my.streams[sid];
     }
