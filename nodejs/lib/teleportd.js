@@ -65,7 +65,7 @@ Parser.prototype.receive = function receive(buffer) {
  * 
  * @extends {}
  * 
- * @param spec {apikey}
+ * @param spec {user_key}
  */
 var teleportd = function(spec, my) {
   my = my || {};
@@ -74,11 +74,15 @@ var teleportd = function(spec, my) {
   my.streams = {};
   my.nextsid = 1;  
 
-  my.apikey = spec.apikey || "INVALID";
+  my.user_key = spec.user_key || null;
 
+  // /!\ Internal use only
+  my.host = spec.host || 'api.teleportd.com';
+  my.access_key = spec.access_key || null;
+  
   // public
-  var search; /* search({loc, string, period, from, size}, function(hits, total, took) {...}); */
-  var stream; /* stream({loc, string}, function(pic) {...}); */
+  var search; /* search({loc, str, period, from, size}, function(hits, total, took) {...}); */
+  var stream; /* stream({loc, str}, function(pic) {...}); */
   var stop;   /* stop(sid); */
   var get;    /* get(sha, function(pic) {...}); */
 
@@ -99,12 +103,13 @@ var teleportd = function(spec, my) {
   build = function(spec, endpoint) {
     var headers = {'User-Agent': 'NodeJS Teleportd API Driver v0.1.0'};
     
-    var q = { accesskey: my.apikey };
+    var q = { accesskey: my.access_key,
+              user_key: my.user_key};
     // parameters validation
     if(Array.isArray(spec.loc) && spec.loc.length === 4)       // loc     [stream|search]
       q.loc = JSON.stringify(spec.loc);
-    if(typeof spec.string === 'string')                        // string  [stream|search]
-      q.str = spec.string;
+    if(typeof spec.str === 'string')                           // str     [stream|search]
+      q.str = spec.str;
     if(Array.isArray(spec.period) && spec.period.length === 2) // period  [search]
       q.period = JSON.stringify(spec.period);
     if(typeof spec.from === 'number')                          // from    [search]
@@ -115,7 +120,7 @@ var teleportd = function(spec, my) {
     if(typeof spec.sha === 'string')                           // sha     [get]
       q.sha = spec.sha;
 
-    var options = { host: 'api.core.teleportd.com',
+    var options = { host: my.host,
 	    	    port: 80,
 	    	    path: '/' + endpoint + '?' + qs.stringify(q),
 	    	    headers: headers };
@@ -125,7 +130,7 @@ var teleportd = function(spec, my) {
 
   /**
    * Performs a search and returns the array of pic received
-   * @param spec {loc, string, period, from, size}
+   * @param spec {loc, str, period, from, size}
    * @param cb   callback function cb(err, hits, total, took)
    */
   search = function(spec, cb) {
@@ -151,7 +156,7 @@ var teleportd = function(spec, my) {
   
   /**
    * Starts a stream search and calls cb on each pic received
-   * @param spec {loc, string}
+   * @param spec {loc, str}
    * @param cb   callback function
    * @return sid stream id
    */
