@@ -274,7 +274,7 @@ var teleportd = function(spec, my) {
                     path: '/tag?' + sha,
                     method: 'POST',
                     headers: { "content-type": 'application/json',
-                               "x-teleportd-accesskey": my.apikey }
+                               "x-teleportd-accesskey": my.access_key }
                   };
     var body = '';
 
@@ -317,7 +317,7 @@ var teleportd = function(spec, my) {
                     path: '/untag?' + sha,
                     method: 'POST',
                     headers: { "content-type": 'application/json',
-                               "x-teleportd-accesskey": my.apikey }
+                               "x-teleportd-accesskey": my.access_key }
                   };
     var body = '';
     
